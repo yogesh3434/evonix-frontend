@@ -1,13 +1,20 @@
+import { useState } from 'react';
+import Pagination from './components/common/Pagination';
 
-function App() {
+export default function App() {
+  const [page, setPage] = useState(1);
 
   return (
-    <>
-      <h1>Evonix</h1>
-      <h3>This is Evonix Frontend</h3>
-      <p>All the remaining views and components will be implemented soon</p>
-    </>
-  )
-}
+    <main>
+      <h1>Pagination Test</h1>
 
-export default App
+      <p>Current page: {page}</p>
+
+      <Pagination
+        currentPage={page}
+        totalPages={5}
+        onPageChange={setPage}
+      />
+    </main>
+  );
+}
