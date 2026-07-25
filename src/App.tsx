@@ -1,20 +1,18 @@
-import { useState } from 'react';
-import Pagination from './components/common/Pagination';
+import { BrowserRouter } from 'react-router-dom';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 
 export default function App() {
-  const [page, setPage] = useState(1);
-
   return (
-    <main>
-      <h1>Pagination Test</h1>
+    <BrowserRouter>
+      <Header />
 
-      <p>Current page: {page}</p>
+      <main>
+        <h1>EVonix Layout Test</h1>
+        <p>This is the page content.</p>
+      </main>
 
-      <Pagination
-        currentPage={page}
-        totalPages={5}
-        onPageChange={setPage}
-      />
-    </main>
+      <Footer />
+    </BrowserRouter>
   );
 }
