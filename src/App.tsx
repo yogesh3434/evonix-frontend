@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import VehicleList from './components/vehicles/VehicleList';
 import type { Vehicle } from './types/vehicle';
 
@@ -69,16 +70,25 @@ export default function App() {
   };
 
   return (
-    <main>
-      <h1>Vehicle List Test</h1>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <main>
+            <h1>Vehicle List Test</h1>
 
-      <p>Selected for comparison: {selectedIds.length}</p>
+            <p>Selected for comparison: {selectedIds.length}</p>
 
-      <VehicleList
-        vehicles={sampleVehicles}
-        selectedComparisonIds={selectedIds}
-        onCompareToggle={toggleComparison}
+            <VehicleList
+              vehicles={sampleVehicles}
+              selectedComparisonIds={selectedIds}
+              onCompareToggle={toggleComparison}
+            />
+          </main>
+        }
       />
-    </main>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
