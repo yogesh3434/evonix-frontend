@@ -1,7 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Footer from './components/layout/Footer';
 import Header from './components/layout/Header';
 import VehiclesPage from './pages/VehiclesPage';
+import VehicleDetailsPage from './pages/VehicleDetailsPage';
 import ComparePage from './pages/ComparePage';
 import HomePage from './pages/HomePage';
 import HotDealsPage from './pages/HotDealsPage';
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/vehicles" element={<VehiclesPage />} />
+        <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/hot-deals" element={<HotDealsPage />} />
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/login" element={<LoginPage />} />
