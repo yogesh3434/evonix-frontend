@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getVehicles } from '../api/vehicleApi';
 import VehicleFilters from '../components/vehicles/VehicleFilters';
 import VehicleList from '../components/vehicles/VehicleList';
@@ -16,6 +17,7 @@ const defaultFilters: VehicleFilterValues = {
 };
 
 export default function VehiclesPage() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filters, setFilters] =
@@ -70,20 +72,37 @@ export default function VehiclesPage() {
     }));
   };
 
+  const viewComparison = () => {
+    const ids = selectedIds.join(',');
+    navigate(`/compare?ids=${encodeURIComponent(ids)}`);
+  };
+
   return (
     <main className="container mx-auto flex-grow px-4 py-8 sm:px-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Vehicles
-        </h1>
+      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">
+            Vehicles
+          </h1>
 
-        <p className="mt-2 text-slate-500">
-          Selected for comparison: {selectedIds.length}
-        </p>
+          <p className="mt-2 text-slate-500">
+            Selected for comparison: {selectedIds.length}
+          </p>
+        </div>
+
+        {selectedIds.length >= 2 && (
+          <button
+            type="button"
+            onClick={viewComparison}
+            className="rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+          >
+            Compare selected vehicles
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="lg:sticky lg:top-6 lg:self-start">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
           <VehicleFilters
             filters={filters}
             onChange={setFilters}
