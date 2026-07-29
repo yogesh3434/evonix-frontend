@@ -71,31 +71,43 @@ export default function VehiclesPage() {
   };
 
   return (
-    <main>
-      <h1>Vehicle List Test</h1>
+    <main className="container mx-auto flex-grow px-4 py-8 sm:px-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-slate-900">
+          Vehicles
+        </h1>
 
-      <p className="text-slate-500 font-medium pb-6 border-b border-slate-200">
-        Selected for comparison: {selectedIds.length}
-      </p>
+        <p className="mt-2 text-slate-500">
+          Selected for comparison: {selectedIds.length}
+        </p>
+      </div>
 
-      <VehicleFilters
-        filters={filters}
-        onChange={setFilters}
-        onApply={applyFilters}
-        onReset={resetFilters}
-      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="lg:sticky lg:top-6 lg:self-start">
+          <VehicleFilters
+            filters={filters}
+            onChange={setFilters}
+            onApply={applyFilters}
+            onReset={resetFilters}
+          />
+        </aside>
 
-      <VehicleSort
-        sortBy={filters.sortBy ?? 'modelYear'}
-        sortOrder={filters.sortOrder ?? 'desc'}
-        onChange={changeSort}
-      />
+        <section className="min-w-0">
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <VehicleSort
+              sortBy={filters.sortBy ?? 'modelYear'}
+              sortOrder={filters.sortOrder ?? 'desc'}
+              onChange={changeSort}
+            />
+          </div>
 
-      <VehicleList
-        vehicles={vehicles}
-        selectedComparisonIds={selectedIds}
-        onCompareToggle={toggleComparison}
-      />
+          <VehicleList
+            vehicles={vehicles}
+            selectedComparisonIds={selectedIds}
+            onCompareToggle={toggleComparison}
+          />
+        </section>
+      </div>
     </main>
   );
 }
