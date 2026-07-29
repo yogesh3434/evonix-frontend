@@ -1,6 +1,5 @@
-import type { Vehicle } from '../types/vehicle';
-
-const API_BASE_URL = 'http://localhost:3000/api';
+import { apiClient } from '../lib/apiClient';
+import type { Vehicle, VehicleDetails } from '../types/vehicle';
 
 type VehicleResponse = {
   success: boolean;
@@ -12,14 +11,22 @@ type VehicleResponse = {
   data: Vehicle[];
 };
 
+type VehicleDetailsResponse = {
+  success: boolean;
+  data: VehicleDetails;
+};
+
 export async function getVehicles(): Promise<Vehicle[]> {
-  const response = await fetch(`${API_BASE_URL}/vehicles`);
+  const response = await apiClient.get<VehicleResponse>('/vehicles');
+  return response.data.data;
+}
 
-  if (!response.ok) {
-    throw new Error('Failed to load vehicles');
-  }
+export async function getVehicleById(
+  vehicleId: string
+): Promise<VehicleDetails> {
+  const response = await apiClient.get<VehicleDetailsResponse>(
+    `/vehicles/${vehicleId}`
+  );
 
-  const result: VehicleResponse = await response.json();
-
-  return result.data;
+  return response.data.data;
 }
