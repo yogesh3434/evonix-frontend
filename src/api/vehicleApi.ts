@@ -1,5 +1,9 @@
 import { apiClient } from '../lib/apiClient';
-import type { Vehicle, VehicleDetails } from '../types/vehicle';
+import type {
+  Vehicle,
+  VehicleDetails,
+  VehicleFilters,
+} from '../types/vehicle';
 
 type VehicleResponse = {
   success: boolean;
@@ -16,9 +20,14 @@ type VehicleDetailsResponse = {
   data: VehicleDetails;
 };
 
-export async function getVehicles(): Promise<Vehicle[]> {
-  const response = await apiClient.get<VehicleResponse>('/vehicles');
-  return response.data.data;
+export async function getVehicles(
+  filters: VehicleFilters = {}
+): Promise<VehicleResponse> {
+  const response = await apiClient.get<VehicleResponse>('/vehicles', {
+    params: filters,
+  });
+
+  return response.data;
 }
 
 export async function getVehicleById(
@@ -26,6 +35,14 @@ export async function getVehicleById(
 ): Promise<VehicleDetails> {
   const response = await apiClient.get<VehicleDetailsResponse>(
     `/vehicles/${vehicleId}`
+  );
+
+  return response.data.data;
+}
+
+export async function getHotDeals(): Promise<Vehicle[]> {
+  const response = await apiClient.get<VehicleResponse>(
+    '/vehicles/hot-deals'
   );
 
   return response.data.data;

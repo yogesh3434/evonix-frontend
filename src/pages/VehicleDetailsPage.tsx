@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { addToCart } from '../api/cartApi';
 import { getVehicleById } from '../api/vehicleApi';
 import type { VehicleDetails } from '../types/vehicle';
 import { formatCurrency } from '../utils/currency';
@@ -10,6 +11,7 @@ export default function VehicleDetailsPage() {
   const [vehicle, setVehicle] = useState<VehicleDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cartMessage, setCartMessage] = useState('');
 
   useEffect(() => {
     const loadVehicle = async () => {
@@ -53,6 +55,15 @@ export default function VehicleDetailsPage() {
     vehicle.isHotDeal && vehicle.hotDealPrice !== null
       ? vehicle.hotDealPrice
       : vehicle.price;
+
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(vehicle.id);
+      setCartMessage('Vehicle added to cart.');
+    } catch {
+      setCartMessage('Unable to add vehicle to cart.');
+    }
+  };
 
   return (
     <main>
@@ -170,7 +181,19 @@ export default function VehicleDetailsPage() {
           )}
         </section>
 
-        <button type="button">Add to cart</button>
+        <button
+            type="button"
+            onClick={handleAddToCart}
+            className="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+            >
+            Add to cart
+            </button>
+
+            {cartMessage && (
+            <p className="mt-3 text-sm font-medium text-slate-700">
+                {cartMessage}
+            </p>
+            )}
       </article>
     </main>
   );
