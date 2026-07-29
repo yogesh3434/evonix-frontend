@@ -69,10 +69,10 @@ export default function VehiclesPage() {
   };
 
   return (
-    <main>
-      <h1>Vehicle List Test</h1>
+    <main className="container mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6 flex-grow">
+      <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Vehicles</h1>
 
-      <p>Selected for comparison: {selectedIds.length}</p>
+      <p className="text-slate-500 font-medium pb-6 border-b border-slate-200">Selected for comparison: {selectedIds.length}</p>
 
       <VehicleList
         vehicles={sampleVehicles}

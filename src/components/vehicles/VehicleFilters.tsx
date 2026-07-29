@@ -79,9 +79,9 @@ export default function VehicleFilters({
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <fieldset disabled={disabled}>
-                <legend>Filter vehicles</legend>
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <fieldset disabled={disabled} className="flex flex-col gap-5">
+                <legend className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 w-full">Filter vehicles</legend>
 
                 <Input
                     label="Brand"
@@ -109,8 +109,8 @@ export default function VehicleFilters({
                     onChange={handleNumberChange('modelYear')}
                 />
 
-                <div>
-                    <label htmlFor="vehicle-condition">
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="vehicle-condition" className="text-sm font-medium text-slate-700">
                         Condition
                     </label>
 
@@ -119,6 +119,7 @@ export default function VehicleFilters({
                         name="condition"
                         value={filters.condition ?? ''}
                         onChange={handleConditionChange}
+                        className="block w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-400 disabled:bg-slate-100"
                     >
                         <option value="">All conditions</option>
                         <option value="new">New</option>
@@ -126,8 +127,8 @@ export default function VehicleFilters({
                     </select>
                 </div>
 
-                <div>
-                    <label htmlFor="vehicle-history">
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor="vehicle-history" className="text-sm font-medium text-slate-700">
                         Vehicle history
                     </label>
 
@@ -136,6 +137,7 @@ export default function VehicleFilters({
                         name="history"
                         value={filters.history ?? ''}
                         onChange={handleHistoryChange}
+                        className="block w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-400 disabled:bg-slate-100"
                     >
                         <option value="">All history statuses</option>
 
@@ -157,34 +159,36 @@ export default function VehicleFilters({
                     </select>
                 </div>
 
-                <Input
-                    label="Minimum price"
-                    name="minPrice"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={filters.minPrice ?? ''}
-                    onChange={handleNumberChange('minPrice')}
-                    placeholder="Minimum price"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                    <Input
+                        label="Min price"
+                        name="minPrice"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={filters.minPrice ?? ''}
+                        onChange={handleNumberChange('minPrice')}
+                        placeholder="Min"
+                    />
 
-                <Input
-                    label="Maximum price"
-                    name="maxPrice"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={filters.maxPrice ?? ''}
-                    onChange={handleNumberChange('maxPrice')}
-                    placeholder="Maximum price"
-                />
+                    <Input
+                        label="Max price"
+                        name="maxPrice"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={filters.maxPrice ?? ''}
+                        onChange={handleNumberChange('maxPrice')}
+                        placeholder="Max"
+                    />
+                </div>
 
-                <div>
-                    <Button type="submit">
+                <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <Button type="submit" fullWidth>
                         Apply filters
                     </Button>
 
-                    <Button type="button" onClick={onReset}>
+                    <Button type="button" onClick={onReset} variant="outline" fullWidth>
                         Reset filters
                     </Button>
                 </div>

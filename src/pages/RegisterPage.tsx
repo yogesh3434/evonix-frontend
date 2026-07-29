@@ -112,7 +112,7 @@ export default function RegisterPage() {
 
     if (isLoading) {
         return (
-            <section aria-label="Complete your profile">
+            <section aria-label="Complete your profile" className="container mx-auto px-4 py-16 flex items-center justify-center flex-grow">
                 <LoadingSpinner label="Checking your session..." />
             </section>
         );
@@ -120,54 +120,72 @@ export default function RegisterPage() {
 
     if (!session) {
         return (
-            <section aria-label="Complete your profile">
-                <h1>Complete Your Profile</h1>
+            <section aria-label="Complete your profile" className="container mx-auto px-4 py-16 flex flex-col items-center justify-center flex-grow">
+                <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6 text-center">
+                    <h1 className="text-2xl font-bold text-slate-900">Complete Your Profile</h1>
 
-                <p>
-                    You must sign in with Google before completing your
-                    profile.
-                </p>
+                    <p className="text-sm text-slate-600">
+                        You must sign in with Google before completing your
+                        profile.
+                    </p>
 
-                <p>
-                    <Link to="/login">Go to Sign In</Link>
-                </p>
+                    <div>
+                        <Link to="/login" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Go to Sign In
+                        </Link>
+                    </div>
+                </div>
             </section>
         );
     }
 
     return (
-        <section aria-label="Complete your profile">
-            <h1>Complete Your Profile</h1>
+        <section aria-label="Complete your profile" className="container mx-auto px-4 py-12 flex flex-col items-center flex-grow">
+            <div className="w-full max-w-2xl bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-8">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Complete Your Profile</h1>
+                    <p className="text-slate-500">
+                        Google does not provide a phone number or address, so please
+                        add them here.
+                    </p>
+                </div>
 
-            <p>
-                Google does not provide a phone number or address, so please
-                add them here.
-            </p>
+                {statusMessage && <p role="status" className="p-4 rounded-lg bg-green-50 text-green-800 text-sm font-medium border border-green-200">{statusMessage}</p>}
+                {errorMessage && <ErrorMessage message={errorMessage} />}
 
-            {statusMessage && <p role="status">{statusMessage}</p>}
-            {errorMessage && <ErrorMessage message={errorMessage} />}
+                <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-6">
+                        <Input label="Phone" {...register('phone')} />
+                    </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                <Input label="Phone" {...register('phone')} />
+                    <div className="flex flex-col gap-6">
+                        <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">Default Address</h2>
 
-                <h2>Default Address</h2>
+                        <Input label="Street" {...register('street')} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <Input label="City" {...register('city')} />
+                            <Input label="Province" {...register('province')} />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <Input label="Postal Code" {...register('postalCode')} />
+                            <Input label="Country" {...register('country')} />
+                        </div>
+                    </div>
 
-                <Input label="Street" {...register('street')} />
-                <Input label="City" {...register('city')} />
-                <Input label="Province" {...register('province')} />
-                <Input label="Postal Code" {...register('postalCode')} />
-                <Input label="Country" {...register('country')} />
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <p className="text-sm text-blue-800">Provide at least a phone number or a complete address.</p>
+                    </div>
 
-                <p>Provide at least a phone number or a complete address.</p>
-
-                <Button
-                    type="submit"
-                    isLoading={isSubmitting}
-                    loadingText="Saving..."
-                >
-                    Save Profile
-                </Button>
-            </form>
+                    <Button
+                        type="submit"
+                        isLoading={isSubmitting}
+                        loadingText="Saving..."
+                        size="lg"
+                    >
+                        Save Profile
+                    </Button>
+                </form>
+            </div>
         </section>
     );
 }

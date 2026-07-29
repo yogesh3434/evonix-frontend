@@ -23,13 +23,13 @@ export default function VehicleList({
     }
 
     return (
-        <section aria-label="Vehicle catalogue">
-            <p>
+        <section aria-label="Vehicle catalogue" className="flex flex-col gap-6">
+            <p className="text-sm text-slate-500 font-medium">
                 Showing {vehicles.length}{' '}
                 {vehicles.length === 1 ? 'vehicle' : 'vehicles'}
             </p>
 
-            <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {vehicles.map((vehicle) => (
                     <VehicleCard
                         key={vehicle.id}

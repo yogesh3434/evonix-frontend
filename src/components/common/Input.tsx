@@ -33,11 +33,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             .join(' ');
 
         return (
-            <div>
+            <div className="flex flex-col gap-1.5 w-full">
                 {label && inputId && (
-                    <label htmlFor={inputId}>
+                    <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
                         {label}
-                        {required ? ' *' : ''}
+                        {required ? <span className="text-red-500 ml-1">*</span> : ''}
                     </label>
                 )}
 
@@ -48,15 +48,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                     required={required}
                     aria-invalid={Boolean(error)}
                     aria-describedby={describedBy || undefined}
+                    className={`block w-full px-4 py-2.5 bg-white border rounded-lg text-sm transition-colors
+                        focus:outline-none focus:ring-2 focus:ring-offset-0
+                        disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed
+                        ${error 
+                            ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500/20' 
+                            : 'border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/20 hover:border-slate-400'
+                        }
+                    `}
                     {...inputProps}
                 />
 
                 {helperText && !error && (
-                    <p id={helperId}>{helperText}</p>
+                    <p id={helperId} className="text-xs text-slate-500 mt-1">{helperText}</p>
                 )}
 
                 {error && (
-                    <p id={errorId} role="alert">
+                    <p id={errorId} role="alert" className="text-xs font-medium text-red-600 mt-1">
                         {error}
                     </p>
                 )}

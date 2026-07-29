@@ -8,47 +8,25 @@ export default function LoadingSpinner({
     size = 'medium',
 }: LoadingSpinnerProps) {
     const sizeMap = {
-        small: 16,
-        medium: 24,
-        large: 36,
+        small: "h-4 w-4 border-2",
+        medium: "h-6 w-6 border-2",
+        large: "h-9 w-9 border-3",
     };
 
-    const spinnerSize = sizeMap[size];
+    const spinnerSizeClasses = sizeMap[size];
 
     return (
         <div
             role="status"
             aria-live="polite"
-            style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-            }}
+            className="inline-flex items-center gap-2"
         >
             <span
                 aria-hidden="true"
-                style={{
-                    width: spinnerSize,
-                    height: spinnerSize,
-                    border: '3px solid #ccc',
-                    borderTopColor: '#000',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                    animation: 'evonix-spin 0.8s linear infinite',
-                }}
+                className={`animate-spin rounded-full border-slate-200 border-t-blue-600 ${spinnerSizeClasses}`}
             />
 
-            {label && <span>{label}</span>}
-
-            <style>
-                {`
-          @keyframes evonix-spin {
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}
-            </style>
+            {label && <span className="text-sm font-medium text-slate-600">{label}</span>}
         </div>
     );
 }

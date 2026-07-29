@@ -32,6 +32,7 @@ export default function VehicleSearch({
             role="search"
             aria-label="Search electric vehicles"
             onSubmit={handleSubmit}
+            className="flex flex-col gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200"
         >
             <Input
                 label="Search vehicles"
@@ -42,17 +43,18 @@ export default function VehicleSearch({
                 placeholder="Search by brand, model, name, or description"
             />
 
-            <div>
+            <div className="flex items-center gap-3 mt-2">
                 <Button
                     type="submit"
                     isLoading={isLoading}
                     loadingText="Searching..."
+                    fullWidth
                 >
                     Search
                 </Button>
 
                 {value.length > 0 && (
-                    <Button type="button" onClick={handleClear}>
+                    <Button type="button" onClick={handleClear} variant="outline" fullWidth>
                         Clear
                     </Button>
                 )}

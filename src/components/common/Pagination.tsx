@@ -35,33 +35,42 @@ export default function Pagination({
     );
 
     return (
-        <nav aria-label="Pagination">
+        <nav aria-label="Pagination" className="flex items-center justify-center gap-2 mt-8">
             <Button
                 onClick={goToPreviousPage}
                 disabled={disabled || currentPage === 1}
                 aria-label="Go to previous page"
+                variant="outline"
+                size="sm"
             >
                 Previous
             </Button>
 
-            {pageNumbers.map((pageNumber) => (
-                <Button
-                    key={pageNumber}
-                    onClick={() => onPageChange(pageNumber)}
-                    disabled={disabled || pageNumber === currentPage}
-                    aria-current={
-                        pageNumber === currentPage ? 'page' : undefined
-                    }
-                    aria-label={`Go to page ${pageNumber}`}
-                >
-                    {pageNumber}
-                </Button>
-            ))}
+            <div className="flex items-center gap-1">
+                {pageNumbers.map((pageNumber) => (
+                    <Button
+                        key={pageNumber}
+                        onClick={() => onPageChange(pageNumber)}
+                        disabled={disabled || pageNumber === currentPage}
+                        aria-current={
+                            pageNumber === currentPage ? 'page' : undefined
+                        }
+                        aria-label={`Go to page ${pageNumber}`}
+                        variant={pageNumber === currentPage ? "primary" : "outline"}
+                        size="sm"
+                        className="w-10 h-10 p-0 rounded-full"
+                    >
+                        {pageNumber}
+                    </Button>
+                ))}
+            </div>
 
             <Button
                 onClick={goToNextPage}
                 disabled={disabled || currentPage === totalPages}
                 aria-label="Go to next page"
+                variant="outline"
+                size="sm"
             >
                 Next
             </Button>

@@ -46,52 +46,58 @@ export default function LoginPage() {
 
     if (isLoading) {
         return (
-            <section aria-label="Sign in">
+            <section aria-label="Sign in" className="container mx-auto px-4 py-16 flex items-center justify-center flex-grow">
                 <LoadingSpinner label="Checking your session..." />
             </section>
         );
     }
 
     return (
-        <section aria-label="Sign in">
-            <h1>Sign In</h1>
+        <section aria-label="Sign in" className="container mx-auto px-4 py-16 flex flex-col items-center justify-center flex-grow">
+            <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
+                <h1 className="text-2xl font-bold text-slate-900 text-center">Sign In</h1>
 
-            {error && <ErrorMessage message={error} />}
+                {error && <ErrorMessage message={error} />}
 
-            {!session && (
-                <div>
-                    <p>
-                        Sign in with your Google account to write reviews and
-                        complete a purchase.
-                    </p>
+                {!session && (
+                    <div className="flex flex-col gap-6">
+                        <p className="text-sm text-slate-600 text-center leading-relaxed">
+                            Sign in with your Google account to write reviews and
+                            complete a purchase.
+                        </p>
 
-                    <Button onClick={handleSignIn}>
-                        Sign in with Google
-                    </Button>
-                </div>
-            )}
+                        <Button onClick={handleSignIn} fullWidth size="lg">
+                            Sign in with Google
+                        </Button>
+                    </div>
+                )}
 
-            {session && (
-                <div>
-                    <h2>You are signed in</h2>
+                {session && (
+                    <div className="flex flex-col gap-4 text-center">
+                        <h2 className="text-lg font-semibold text-slate-900">You are signed in</h2>
 
-                    <p>
-                        Signed in as: {currentUser?.email ?? session.user.email}
-                    </p>
+                        <p className="text-sm text-slate-600">
+                            Signed in as: <strong className="font-medium text-slate-900">{currentUser?.email ?? session.user.email}</strong>
+                        </p>
 
-                    <p>
-                        <Link to="/register">Complete your profile</Link>
-                    </p>
+                        <p className="py-2">
+                            <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                                Complete your profile
+                            </Link>
+                        </p>
 
-                    <Button
-                        onClick={handleSignOut}
-                        isLoading={isSigningOut}
-                        loadingText="Signing out..."
-                    >
-                        Sign Out
-                    </Button>
-                </div>
-            )}
+                        <Button
+                            onClick={handleSignOut}
+                            isLoading={isSigningOut}
+                            loadingText="Signing out..."
+                            variant="secondary"
+                            fullWidth
+                        >
+                            Sign Out
+                        </Button>
+                    </div>
+                )}
+            </div>
         </section>
     );
 }
