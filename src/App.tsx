@@ -9,6 +9,7 @@ import HotDealsPage from './pages/HotDealsPage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RegisterPage from './pages/RegisterPage';
+import CartPage from './pages/CartPage';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="*" element={<NotFoundPage />} />
+          <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>
 

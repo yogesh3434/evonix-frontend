@@ -1,17 +1,38 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { addToCart } from '../api/cartApi';
+import {
+  createReview,
+  getVehicleReviews,
+  type Review,
+} from '../api/reviewApi';
 import { getVehicleById } from '../api/vehicleApi';
+import HotDealBadge from '../components/vehicles/HotDealBadge';
 import type { VehicleDetails } from '../types/vehicle';
 import { formatCurrency } from '../utils/currency';
-import HotDealBadge from '../components/vehicles/HotDealBadge';
+import {
+  getLoanEstimate,
+  type LoanEstimate,
+} from '../api/loanApi';
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
   const [vehicle, setVehicle] = useState<VehicleDetails | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [cartMessage, setCartMessage] = useState('');
+  const [reviewMessage, setReviewMessage] = useState('');
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [downPayment, setDownPayment] = useState(0);
+  const [interestRate, setInterestRate] = useState(5);
+  const [loanTerm, setLoanTerm] = useState(60);
+  const [loanEstimate, setLoanEstimate] =useState<LoanEstimate | null>(null);
+  const [loanMessage, setLoanMessage] = useState('');
+  const [isCalculatingLoan, setIsCalculatingLoan] =useState(false);
 
   useEffect(() => {
     const loadVehicle = async () => {
@@ -22,8 +43,12 @@ export default function VehicleDetailsPage() {
       }
 
       try {
-        const data = await getVehicleById(id);
-        setVehicle(data);
+        const vehicleData = await getVehicleById(id);
+        const reviewData = await getVehicleReviews(id);
+
+        setVehicle(vehicleData);
+        setReviews(reviewData.data);
+        setAverageRating(reviewData.averageRating);
       } catch {
         setError('Unable to load vehicle details.');
       } finally {
@@ -65,56 +90,121 @@ export default function VehicleDetailsPage() {
     }
   };
 
-  return (
-    <main>
-      <Link to="/vehicles">Back to vehicles</Link>
+  const handleReviewSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
 
-      <article>
+    try {
+      await createReview(vehicle.id, rating, title, body);
+
+      const reviewData = await getVehicleReviews(vehicle.id);
+
+      setReviews(reviewData.data);
+      setAverageRating(reviewData.averageRating);
+      setRating(5);
+      setTitle('');
+      setBody('');
+      setReviewMessage('Review submitted successfully.');
+    } catch {
+      setReviewMessage('Unable to submit review.');
+    }
+  };
+
+  const handleLoanCalculation = async (
+    event: React.FormEvent<HTMLFormElement>
+    ) => {
+    event.preventDefault();
+
+    const principal = displayPrice - downPayment;
+
+    if (principal <= 0) {
+        setLoanEstimate(null);
+        setLoanMessage(
+        'Down payment must be less than the vehicle price.'
+        );
+        return;
+    }
+
+    try {
+        setIsCalculatingLoan(true);
+        setLoanMessage('');
+
+        const estimate = await getLoanEstimate(
+        principal,
+        interestRate,
+        loanTerm
+        );
+
+        setLoanEstimate(estimate);
+    }  catch (error) {
+        console.error('Loan calculation error:', error);
+        setLoanEstimate(null);
+        setLoanMessage('Unable to calculate the loan estimate.');
+        } finally {
+        setIsCalculatingLoan(false);
+    }
+    };
+
+  return (
+    <main className="container mx-auto px-4 sm:px-6 py-8 flex-grow">
+      <Link
+        to="/vehicles"
+        className="text-blue-600 font-medium hover:text-blue-700"
+      >
+        Back to vehicles
+      </Link>
+
+      <article className="mt-6 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <header>
-          <h1>{vehicle.name}</h1>
+          <h1 className="text-3xl font-bold text-slate-900">
+            {vehicle.name}
+          </h1>
 
           {vehicle.isHotDeal && <HotDealBadge />}
 
-          <p>
+          <p className="mt-2 text-slate-600">
             {vehicle.brand} {vehicle.model} · {vehicle.modelYear}
           </p>
         </header>
 
-        <p>{vehicle.description ?? 'No description available.'}</p>
+        <p className="mt-6 text-slate-700">
+          {vehicle.description ?? 'No description available.'}
+        </p>
 
-        <dl>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           <div>
-            <dt>Condition</dt>
+            <dt className="font-semibold">Condition</dt>
             <dd>{vehicle.condition}</dd>
           </div>
 
           <div>
-            <dt>Status</dt>
+            <dt className="font-semibold">Status</dt>
             <dd>{vehicle.status}</dd>
           </div>
 
           <div>
-            <dt>Body style</dt>
+            <dt className="font-semibold">Body style</dt>
             <dd>{vehicle.bodyStyle ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Exterior colour</dt>
+            <dt className="font-semibold">Exterior colour</dt>
             <dd>{vehicle.colourExterior ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Interior colour</dt>
+            <dt className="font-semibold">Interior colour</dt>
             <dd>{vehicle.colourInterior ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Interior fabric</dt>
+            <dt className="font-semibold">Interior fabric</dt>
             <dd>{vehicle.interiorFabric ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Range</dt>
+            <dt className="font-semibold">Range</dt>
             <dd>
               {vehicle.rangeKm !== null
                 ? `${vehicle.rangeKm} km`
@@ -123,7 +213,7 @@ export default function VehicleDetailsPage() {
           </div>
 
           <div>
-            <dt>Battery</dt>
+            <dt className="font-semibold">Battery</dt>
             <dd>
               {vehicle.batteryKwh !== null
                 ? `${vehicle.batteryKwh} kWh`
@@ -132,7 +222,7 @@ export default function VehicleDetailsPage() {
           </div>
 
           <div>
-            <dt>Charge time</dt>
+            <dt className="font-semibold">Charge time</dt>
             <dd>
               {vehicle.chargeTimeHrs !== null
                 ? `${vehicle.chargeTimeHrs} hours`
@@ -141,60 +231,334 @@ export default function VehicleDetailsPage() {
           </div>
 
           <div>
-            <dt>Horsepower</dt>
+            <dt className="font-semibold">Horsepower</dt>
             <dd>{vehicle.horsepower ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Seating capacity</dt>
+            <dt className="font-semibold">Seating capacity</dt>
             <dd>{vehicle.seatingCapacity ?? 'Not specified'}</dd>
           </div>
 
           <div>
-            <dt>Mileage</dt>
+            <dt className="font-semibold">Mileage</dt>
             <dd>{vehicle.mileageKm.toLocaleString()} km</dd>
           </div>
 
           <div>
-            <dt>Available quantity</dt>
+            <dt className="font-semibold">Available quantity</dt>
             <dd>{vehicle.quantity}</dd>
           </div>
         </dl>
 
-        <section>
+        <section className="mt-6">
           {vehicle.isHotDeal && vehicle.hotDealPrice !== null ? (
             <>
               <p>
                 Regular price: <s>{formatCurrency(vehicle.price)}</s>
               </p>
 
-              <p>
+              <p className="text-xl">
                 <strong>
                   Deal price: {formatCurrency(displayPrice)}
                 </strong>
               </p>
             </>
           ) : (
-            <p>
+            <p className="text-xl">
               <strong>{formatCurrency(displayPrice)}</strong>
             </p>
           )}
         </section>
 
         <button
-            type="button"
-            onClick={handleAddToCart}
-            className="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-            >
-            Add to cart
-            </button>
+          type="button"
+          onClick={handleAddToCart}
+          className="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        >
+          Add to cart
+        </button>
 
-            {cartMessage && (
-            <p className="mt-3 text-sm font-medium text-slate-700">
-                {cartMessage}
-            </p>
-            )}
+        {cartMessage && (
+          <p className="mt-3 text-sm font-medium text-slate-700">
+            {cartMessage}
+          </p>
+        )}
       </article>
+
+      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-slate-900">
+          Customer Reviews
+        </h2>
+
+        <p className="mt-2 text-slate-600">
+          Average rating: {averageRating.toFixed(1)} out of 5
+        </p>
+
+        {reviews.length === 0 ? (
+          <p className="mt-4">No reviews available.</p>
+        ) : (
+          <div className="mt-6 flex flex-col gap-4">
+            {reviews.map((review) => (
+              <article
+                key={review.id}
+                className="border border-slate-200 rounded-lg p-4"
+              >
+                <p className="text-amber-500 text-xl">
+                  {'★'.repeat(review.rating)}
+                  {'☆'.repeat(5 - review.rating)}
+                </p>
+
+                {review.title && (
+                  <h3 className="font-bold text-slate-900 mt-2">
+                    {review.title}
+                  </h3>
+                )}
+
+                {review.body && (
+                  <p className="mt-2 text-slate-700">
+                    {review.body}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-slate-900">
+          Write a Review
+        </h2>
+
+        <form
+          onSubmit={handleReviewSubmit}
+          className="mt-6 flex flex-col gap-4"
+        >
+          <div>
+            <p className="font-medium text-slate-700 mb-2">
+              Rating
+            </p>
+
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className="text-3xl text-amber-500"
+                >
+                  {star <= rating ? '★' : '☆'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="review-title"
+              className="text-sm font-medium text-slate-700"
+            >
+              Title
+            </label>
+
+            <input
+              id="review-title"
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required
+              maxLength={120}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="review-body"
+              className="text-sm font-medium text-slate-700"
+            >
+              Review
+            </label>
+
+            <textarea
+              id="review-body"
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              required
+              maxLength={2000}
+              rows={5}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+          >
+            Submit review
+          </button>
+
+          {reviewMessage && (
+            <p className="text-sm font-medium text-slate-700">
+              {reviewMessage}
+            </p>
+          )}
+        </form>
+      </section>
+
+      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-slate-900">
+            Loan Calculator
+        </h2>
+
+        <p className="mt-2 text-slate-600">
+            Estimate the monthly payment for this vehicle.
+        </p>
+
+        <form
+            onSubmit={handleLoanCalculation}
+            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
+        >
+            <div className="flex flex-col gap-1.5">
+            <label
+                htmlFor="down-payment"
+                className="text-sm font-medium text-slate-700"
+            >
+                Down payment
+            </label>
+
+            <input
+                id="down-payment"
+                type="number"
+                min="0"
+                step="0.01"
+                value={downPayment}
+                onChange={(event) =>
+                setDownPayment(Number(event.target.value))
+                }
+                className="rounded-lg border border-slate-300 px-4 py-2.5"
+            />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+            <label
+                htmlFor="interest-rate"
+                className="text-sm font-medium text-slate-700"
+            >
+                Annual interest rate (%)
+            </label>
+
+            <input
+                id="interest-rate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={interestRate}
+                onChange={(event) =>
+                setInterestRate(Number(event.target.value))
+                }
+                required
+                className="rounded-lg border border-slate-300 px-4 py-2.5"
+            />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+            <label
+                htmlFor="loan-term"
+                className="text-sm font-medium text-slate-700"
+            >
+                Loan term
+            </label>
+
+            <select
+                id="loan-term"
+                value={loanTerm}
+                onChange={(event) =>
+                setLoanTerm(Number(event.target.value))
+                }
+                className="rounded-lg border border-slate-300 px-4 py-2.5"
+            >
+                <option value={12}>12 months</option>
+                <option value={24}>24 months</option>
+                <option value={36}>36 months</option>
+                <option value={48}>48 months</option>
+                <option value={60}>60 months</option>
+                <option value={72}>72 months</option>
+                <option value={84}>84 months</option>
+                <option value={96}>96 months</option>
+                <option value={120}>120 months</option>
+            </select>
+            </div>
+
+            <div className="md:col-span-3">
+            <p className="text-sm text-slate-600">
+                Vehicle price: {formatCurrency(displayPrice)}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-600">
+                Estimated loan amount:{' '}
+                {formatCurrency(
+                Math.max(displayPrice - downPayment, 0)
+                )}
+            </p>
+            </div>
+
+            <div className="md:col-span-3">
+            <button
+                type="submit"
+                disabled={isCalculatingLoan}
+                className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                {isCalculatingLoan
+                ? 'Calculating...'
+                : 'Calculate payment'}
+            </button>
+            </div>
+        </form>
+
+        {loanMessage && (
+            <p className="mt-4 text-sm font-medium text-red-600">
+            {loanMessage}
+            </p>
+        )}
+
+        {loanEstimate && (
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-lg bg-slate-100 p-4">
+                <p className="text-sm text-slate-600">
+                Monthly payment
+                </p>
+
+                <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(loanEstimate.monthlyPayment)}
+                </p>
+            </div>
+
+            <div className="rounded-lg bg-slate-100 p-4">
+                <p className="text-sm text-slate-600">
+                Total interest
+                </p>
+
+                <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(loanEstimate.totalInterest)}
+                </p>
+            </div>
+
+            <div className="rounded-lg bg-slate-100 p-4">
+                <p className="text-sm text-slate-600">
+                Total amount paid
+                </p>
+
+                <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(loanEstimate.totalPaid)}
+                </p>
+            </div>
+            </div>
+        )}
+        </section>
+
     </main>
   );
 }

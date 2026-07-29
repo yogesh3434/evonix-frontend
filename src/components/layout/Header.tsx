@@ -29,6 +29,10 @@ export default function Header() {
                         </li>
 
                         <li>
+                            <NavLink to="/cart" className={({isActive}) => `text-sm font-medium transition-colors hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-slate-300'}`}>Cart</NavLink>
+                        </li>
+
+                        <li>
                             <NavLink to="/login" className={({isActive}) => `text-sm font-medium transition-colors hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-slate-300'}`}>Login</NavLink>
                         </li>
 
