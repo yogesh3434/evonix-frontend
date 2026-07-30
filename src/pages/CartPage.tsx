@@ -115,13 +115,20 @@ export default function CartPage() {
             </article>
           ))}
 
-          <section className="bg-slate-100 rounded-xl p-6">
+          <section className="rounded-xl bg-slate-100 p-6">
             <p>Total items: {cart.itemCount}</p>
 
             <p className="text-xl font-bold">
-              Subtotal: {formatCurrency(cart.subtotal)}
+                Subtotal: {formatCurrency(cart.subtotal)}
             </p>
-          </section>
+
+            <Link
+                to="/checkout"
+                className="mt-4 inline-block rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700"
+            >
+                Proceed to Checkout
+            </Link>
+            </section>
         </div>
       )}
     </main>
