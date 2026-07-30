@@ -99,12 +99,5 @@ a teammate with dashboard access if you can't.
 | Buttons on `/login` don't seem to do anything / network errors in the console | `FRONTEND_URL` in the backend's `.env` doesn't match `http://localhost:5173`, or the backend isn't running - CORS blocks the request silently otherwise |
 | "Session invalid" message after signing in | Your token may have been revoked (e.g. you signed out elsewhere) - try signing in again |
 
-## Note: if the app is later published (out of Testing mode)
-
-If someone publishes the Google OAuth consent screen to Production, step 0
-(adding test users) is no longer needed - any Google account can sign in.
-Users will see a "Google hasn't verified this app" warning screen first,
-which is expected for a project like this - click "Advanced" → "Go to
-[app name] (unsafe)" to continue.
 
 
