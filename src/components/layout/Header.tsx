@@ -5,6 +5,11 @@ import { useAuth } from '../../context/useAuth';
 export default function Header() {
   const { session, currentUser, isSigningOut, signOut } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const profile = currentUser?.profile;
+
+  const isProfileComplete = Boolean(
+    profile && (profile.phone || profile.hasAddress)
+  );
 
   const handleSignOut = async () => {
     setError(null);
@@ -135,11 +140,17 @@ export default function Header() {
               )}
             </li>
 
-            {session && (
+            {session && !isProfileComplete && (
               <li>
                 <NavLink
                   to="/register"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                  className={({ isActive }) =>
+                    `text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-blue-400'
+                        : 'text-blue-400 hover:text-blue-300'
+                    }`
+                  }
                 >
                   Complete Profile
                 </NavLink>

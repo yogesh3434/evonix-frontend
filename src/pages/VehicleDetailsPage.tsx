@@ -7,17 +7,23 @@ import {
   type Review,
 } from '../api/reviewApi';
 import { getVehicleById } from '../api/vehicleApi';
-import HotDealBadge from '../components/vehicles/HotDealBadge';
-import type { VehicleDetails } from '../types/vehicle';
-import { formatCurrency } from '../utils/currency';
 import {
   getLoanEstimate,
   type LoanEstimate,
 } from '../api/loanApi';
+import HotDealBadge from '../components/vehicles/HotDealBadge';
+import {
+  defaultVehicleImage,
+  vehicleImages,
+} from '../data/vehicleImages';
+import type { VehicleDetails } from '../types/vehicle';
+import { formatCurrency } from '../utils/currency';
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
-  const [vehicle, setVehicle] = useState<VehicleDetails | null>(null);
+
+  const [vehicle, setVehicle] =
+    useState<VehicleDetails | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,9 +36,11 @@ export default function VehicleDetailsPage() {
   const [downPayment, setDownPayment] = useState(0);
   const [interestRate, setInterestRate] = useState(5);
   const [loanTerm, setLoanTerm] = useState(60);
-  const [loanEstimate, setLoanEstimate] =useState<LoanEstimate | null>(null);
+  const [loanEstimate, setLoanEstimate] =
+    useState<LoanEstimate | null>(null);
   const [loanMessage, setLoanMessage] = useState('');
-  const [isCalculatingLoan, setIsCalculatingLoan] =useState(false);
+  const [isCalculatingLoan, setIsCalculatingLoan] =
+    useState(false);
 
   useEffect(() => {
     const loadVehicle = async () => {
@@ -61,7 +69,7 @@ export default function VehicleDetailsPage() {
 
   if (isLoading) {
     return (
-      <main>
+      <main className="container mx-auto flex-grow px-4 py-8 sm:px-6">
         <p>Loading vehicle details...</p>
       </main>
     );
@@ -69,9 +77,15 @@ export default function VehicleDetailsPage() {
 
   if (error || !vehicle) {
     return (
-      <main>
+      <main className="container mx-auto flex-grow px-4 py-8 sm:px-6">
         <p>{error || 'Vehicle not found.'}</p>
-        <Link to="/vehicles">Back to vehicles</Link>
+
+        <Link
+          to="/vehicles"
+          className="mt-4 inline-block font-medium text-blue-600 hover:text-blue-700"
+        >
+          Back to vehicles
+        </Link>
       </main>
     );
   }
@@ -80,6 +94,9 @@ export default function VehicleDetailsPage() {
     vehicle.isHotDeal && vehicle.hotDealPrice !== null
       ? vehicle.hotDealPrice
       : vehicle.price;
+
+  const imageUrl =
+    vehicleImages[vehicle.name] ?? defaultVehicleImage;
 
   const handleAddToCart = async () => {
     try {
@@ -113,180 +130,230 @@ export default function VehicleDetailsPage() {
 
   const handleLoanCalculation = async (
     event: React.FormEvent<HTMLFormElement>
-    ) => {
+  ) => {
     event.preventDefault();
 
     const principal = displayPrice - downPayment;
 
     if (principal <= 0) {
-        setLoanEstimate(null);
-        setLoanMessage(
+      setLoanEstimate(null);
+      setLoanMessage(
         'Down payment must be less than the vehicle price.'
-        );
-        return;
+      );
+      return;
     }
 
     try {
-        setIsCalculatingLoan(true);
-        setLoanMessage('');
+      setIsCalculatingLoan(true);
+      setLoanMessage('');
 
-        const estimate = await getLoanEstimate(
+      const estimate = await getLoanEstimate(
         principal,
         interestRate,
         loanTerm
-        );
+      );
 
-        setLoanEstimate(estimate);
-    }  catch (error) {
-        console.error('Loan calculation error:', error);
-        setLoanEstimate(null);
-        setLoanMessage('Unable to calculate the loan estimate.');
-        } finally {
-        setIsCalculatingLoan(false);
+      setLoanEstimate(estimate);
+    } catch (error) {
+      console.error('Loan calculation error:', error);
+      setLoanEstimate(null);
+      setLoanMessage(
+        'Unable to calculate the loan estimate.'
+      );
+    } finally {
+      setIsCalculatingLoan(false);
     }
-    };
+  };
 
   return (
-    <main className="container mx-auto px-4 sm:px-6 py-8 flex-grow">
+    <main className="container mx-auto flex-grow px-4 py-8 sm:px-6">
       <Link
         to="/vehicles"
-        className="text-blue-600 font-medium hover:text-blue-700"
+        className="font-medium text-blue-600 hover:text-blue-700"
       >
         Back to vehicles
       </Link>
 
-      <article className="mt-6 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <header>
-          <h1 className="text-3xl font-bold text-slate-900">
-            {vehicle.name}
-          </h1>
+      <article className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <img
+          src={imageUrl}
+          alt={`${vehicle.name} electric vehicle`}
+          loading="lazy"
+          onError={(event) => {
+            event.currentTarget.src = defaultVehicleImage;
+          }}
+          className="h-96 w-full object-cover"
+        />
 
-          {vehicle.isHotDeal && <HotDealBadge />}
+        <div className="p-6">
+          <header>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <h1 className="text-3xl font-bold text-slate-900">
+                {vehicle.name}
+              </h1>
 
-          <p className="mt-2 text-slate-600">
-            {vehicle.brand} {vehicle.model} · {vehicle.modelYear}
+              {vehicle.isHotDeal && <HotDealBadge />}
+            </div>
+
+            <p className="mt-2 text-slate-600">
+              {vehicle.brand} {vehicle.model} ·{' '}
+              {vehicle.modelYear}
+            </p>
+          </header>
+
+          <p className="mt-6 text-slate-700">
+            {vehicle.description ??
+              'No description available.'}
           </p>
-        </header>
 
-        <p className="mt-6 text-slate-700">
-          {vehicle.description ?? 'No description available.'}
-        </p>
+          <dl className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <dt className="font-semibold">Condition</dt>
+              <dd>{vehicle.condition}</dd>
+            </div>
 
-        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          <div>
-            <dt className="font-semibold">Condition</dt>
-            <dd>{vehicle.condition}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Status</dt>
+              <dd>{vehicle.status}</dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Status</dt>
-            <dd>{vehicle.status}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Body style</dt>
+              <dd>
+                {vehicle.bodyStyle ?? 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Body style</dt>
-            <dd>{vehicle.bodyStyle ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Exterior colour
+              </dt>
+              <dd>
+                {vehicle.colourExterior ?? 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Exterior colour</dt>
-            <dd>{vehicle.colourExterior ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Interior colour
+              </dt>
+              <dd>
+                {vehicle.colourInterior ?? 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Interior colour</dt>
-            <dd>{vehicle.colourInterior ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Interior fabric
+              </dt>
+              <dd>
+                {vehicle.interiorFabric ?? 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Interior fabric</dt>
-            <dd>{vehicle.interiorFabric ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Range</dt>
+              <dd>
+                {vehicle.rangeKm !== null
+                  ? `${vehicle.rangeKm} km`
+                  : 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Range</dt>
-            <dd>
-              {vehicle.rangeKm !== null
-                ? `${vehicle.rangeKm} km`
-                : 'Not specified'}
-            </dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Battery</dt>
+              <dd>
+                {vehicle.batteryKwh !== null
+                  ? `${vehicle.batteryKwh} kWh`
+                  : 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Battery</dt>
-            <dd>
-              {vehicle.batteryKwh !== null
-                ? `${vehicle.batteryKwh} kWh`
-                : 'Not specified'}
-            </dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Charge time
+              </dt>
+              <dd>
+                {vehicle.chargeTimeHrs !== null
+                  ? `${vehicle.chargeTimeHrs} hours`
+                  : 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Charge time</dt>
-            <dd>
-              {vehicle.chargeTimeHrs !== null
-                ? `${vehicle.chargeTimeHrs} hours`
-                : 'Not specified'}
-            </dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Horsepower</dt>
+              <dd>
+                {vehicle.horsepower ?? 'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Horsepower</dt>
-            <dd>{vehicle.horsepower ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Seating capacity
+              </dt>
+              <dd>
+                {vehicle.seatingCapacity ??
+                  'Not specified'}
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Seating capacity</dt>
-            <dd>{vehicle.seatingCapacity ?? 'Not specified'}</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">Mileage</dt>
+              <dd>
+                {vehicle.mileageKm.toLocaleString()} km
+              </dd>
+            </div>
 
-          <div>
-            <dt className="font-semibold">Mileage</dt>
-            <dd>{vehicle.mileageKm.toLocaleString()} km</dd>
-          </div>
+            <div>
+              <dt className="font-semibold">
+                Available quantity
+              </dt>
+              <dd>{vehicle.quantity}</dd>
+            </div>
+          </dl>
 
-          <div>
-            <dt className="font-semibold">Available quantity</dt>
-            <dd>{vehicle.quantity}</dd>
-          </div>
-        </dl>
+          <section className="mt-6">
+            {vehicle.isHotDeal &&
+            vehicle.hotDealPrice !== null ? (
+              <>
+                <p>
+                  Regular price:{' '}
+                  <s>{formatCurrency(vehicle.price)}</s>
+                </p>
 
-        <section className="mt-6">
-          {vehicle.isHotDeal && vehicle.hotDealPrice !== null ? (
-            <>
-              <p>
-                Regular price: <s>{formatCurrency(vehicle.price)}</s>
-              </p>
-
+                <p className="text-xl">
+                  <strong>
+                    Deal price:{' '}
+                    {formatCurrency(displayPrice)}
+                  </strong>
+                </p>
+              </>
+            ) : (
               <p className="text-xl">
                 <strong>
-                  Deal price: {formatCurrency(displayPrice)}
+                  {formatCurrency(displayPrice)}
                 </strong>
               </p>
-            </>
-          ) : (
-            <p className="text-xl">
-              <strong>{formatCurrency(displayPrice)}</strong>
+            )}
+          </section>
+
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+          >
+            Add to cart
+          </button>
+
+          {cartMessage && (
+            <p className="mt-3 text-sm font-medium text-slate-700">
+              {cartMessage}
             </p>
           )}
-        </section>
-
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-        >
-          Add to cart
-        </button>
-
-        {cartMessage && (
-          <p className="mt-3 text-sm font-medium text-slate-700">
-            {cartMessage}
-          </p>
-        )}
+        </div>
       </article>
 
-      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-900">
           Customer Reviews
         </h2>
@@ -302,15 +369,15 @@ export default function VehicleDetailsPage() {
             {reviews.map((review) => (
               <article
                 key={review.id}
-                className="border border-slate-200 rounded-lg p-4"
+                className="rounded-lg border border-slate-200 p-4"
               >
-                <p className="text-amber-500 text-xl">
+                <p className="text-xl text-amber-500">
                   {'★'.repeat(review.rating)}
                   {'☆'.repeat(5 - review.rating)}
                 </p>
 
                 {review.title && (
-                  <h3 className="font-bold text-slate-900 mt-2">
+                  <h3 className="mt-2 font-bold text-slate-900">
                     {review.title}
                   </h3>
                 )}
@@ -326,7 +393,7 @@ export default function VehicleDetailsPage() {
         )}
       </section>
 
-      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-900">
           Write a Review
         </h2>
@@ -336,7 +403,7 @@ export default function VehicleDetailsPage() {
           className="mt-6 flex flex-col gap-4"
         >
           <div>
-            <p className="font-medium text-slate-700 mb-2">
+            <p className="mb-2 font-medium text-slate-700">
               Rating
             </p>
 
@@ -366,10 +433,12 @@ export default function VehicleDetailsPage() {
               id="review-title"
               type="text"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
               required
               maxLength={120}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg"
+              className="rounded-lg border border-slate-300 px-4 py-2.5"
             />
           </div>
 
@@ -384,11 +453,13 @@ export default function VehicleDetailsPage() {
             <textarea
               id="review-body"
               value={body}
-              onChange={(event) => setBody(event.target.value)}
+              onChange={(event) =>
+                setBody(event.target.value)
+              }
               required
               maxLength={2000}
               rows={5}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg"
+              className="rounded-lg border border-slate-300 px-4 py-2.5"
             />
           </div>
 
@@ -407,158 +478,169 @@ export default function VehicleDetailsPage() {
         </form>
       </section>
 
-      <section className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-900">
-            Loan Calculator
+          Loan Calculator
         </h2>
 
         <p className="mt-2 text-slate-600">
-            Estimate the monthly payment for this vehicle.
+          Estimate the monthly payment for this vehicle.
         </p>
 
         <form
-            onSubmit={handleLoanCalculation}
-            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
+          onSubmit={handleLoanCalculation}
+          className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
         >
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <label
-                htmlFor="down-payment"
-                className="text-sm font-medium text-slate-700"
+              htmlFor="down-payment"
+              className="text-sm font-medium text-slate-700"
             >
-                Down payment
+              Down payment
             </label>
 
             <input
-                id="down-payment"
-                type="number"
-                min="0"
-                step="0.01"
-                value={downPayment}
-                onChange={(event) =>
+              id="down-payment"
+              type="number"
+              min="0"
+              step="0.01"
+              value={downPayment}
+              onChange={(event) =>
                 setDownPayment(Number(event.target.value))
-                }
-                className="rounded-lg border border-slate-300 px-4 py-2.5"
+              }
+              className="rounded-lg border border-slate-300 px-4 py-2.5"
             />
-            </div>
+          </div>
 
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <label
-                htmlFor="interest-rate"
-                className="text-sm font-medium text-slate-700"
+              htmlFor="interest-rate"
+              className="text-sm font-medium text-slate-700"
             >
-                Annual interest rate (%)
+              Annual interest rate (%)
             </label>
 
             <input
-                id="interest-rate"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={interestRate}
-                onChange={(event) =>
-                setInterestRate(Number(event.target.value))
-                }
-                required
-                className="rounded-lg border border-slate-300 px-4 py-2.5"
+              id="interest-rate"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={interestRate}
+              onChange={(event) =>
+                setInterestRate(
+                  Number(event.target.value)
+                )
+              }
+              required
+              className="rounded-lg border border-slate-300 px-4 py-2.5"
             />
-            </div>
+          </div>
 
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <label
-                htmlFor="loan-term"
-                className="text-sm font-medium text-slate-700"
+              htmlFor="loan-term"
+              className="text-sm font-medium text-slate-700"
             >
-                Loan term
+              Loan term
             </label>
 
             <select
-                id="loan-term"
-                value={loanTerm}
-                onChange={(event) =>
+              id="loan-term"
+              value={loanTerm}
+              onChange={(event) =>
                 setLoanTerm(Number(event.target.value))
-                }
-                className="rounded-lg border border-slate-300 px-4 py-2.5"
+              }
+              className="rounded-lg border border-slate-300 px-4 py-2.5"
             >
-                <option value={12}>12 months</option>
-                <option value={24}>24 months</option>
-                <option value={36}>36 months</option>
-                <option value={48}>48 months</option>
-                <option value={60}>60 months</option>
-                <option value={72}>72 months</option>
-                <option value={84}>84 months</option>
-                <option value={96}>96 months</option>
-                <option value={120}>120 months</option>
+              <option value={12}>12 months</option>
+              <option value={24}>24 months</option>
+              <option value={36}>36 months</option>
+              <option value={48}>48 months</option>
+              <option value={60}>60 months</option>
+              <option value={72}>72 months</option>
+              <option value={84}>84 months</option>
+              <option value={96}>96 months</option>
+              <option value={120}>120 months</option>
             </select>
-            </div>
+          </div>
 
-            <div className="md:col-span-3">
+          <div className="md:col-span-3">
             <p className="text-sm text-slate-600">
-                Vehicle price: {formatCurrency(displayPrice)}
+              Vehicle price:{' '}
+              {formatCurrency(displayPrice)}
             </p>
 
             <p className="mt-1 text-sm text-slate-600">
-                Estimated loan amount:{' '}
-                {formatCurrency(
-                Math.max(displayPrice - downPayment, 0)
-                )}
+              Estimated loan amount:{' '}
+              {formatCurrency(
+                Math.max(
+                  displayPrice - downPayment,
+                  0
+                )
+              )}
             </p>
-            </div>
+          </div>
 
-            <div className="md:col-span-3">
+          <div className="md:col-span-3">
             <button
-                type="submit"
-                disabled={isCalculatingLoan}
-                className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              type="submit"
+              disabled={isCalculatingLoan}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-                {isCalculatingLoan
+              {isCalculatingLoan
                 ? 'Calculating...'
                 : 'Calculate payment'}
             </button>
-            </div>
+          </div>
         </form>
 
         {loanMessage && (
-            <p className="mt-4 text-sm font-medium text-red-600">
+          <p className="mt-4 text-sm font-medium text-red-600">
             {loanMessage}
-            </p>
+          </p>
         )}
 
         {loanEstimate && (
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-lg bg-slate-100 p-4">
-                <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600">
                 Monthly payment
-                </p>
+              </p>
 
-                <p className="mt-1 text-xl font-bold text-slate-900">
-                {formatCurrency(loanEstimate.monthlyPayment)}
-                </p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(
+                  loanEstimate.monthlyPayment
+                )}
+              </p>
             </div>
 
             <div className="rounded-lg bg-slate-100 p-4">
-                <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600">
                 Total interest
-                </p>
+              </p>
 
-                <p className="mt-1 text-xl font-bold text-slate-900">
-                {formatCurrency(loanEstimate.totalInterest)}
-                </p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(
+                  loanEstimate.totalInterest
+                )}
+              </p>
             </div>
 
             <div className="rounded-lg bg-slate-100 p-4">
-                <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600">
                 Total amount paid
-                </p>
+              </p>
 
-                <p className="mt-1 text-xl font-bold text-slate-900">
-                {formatCurrency(loanEstimate.totalPaid)}
-                </p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {formatCurrency(
+                  loanEstimate.totalPaid
+                )}
+              </p>
             </div>
-            </div>
+          </div>
         )}
-        </section>
-
+      </section>
     </main>
   );
 }
