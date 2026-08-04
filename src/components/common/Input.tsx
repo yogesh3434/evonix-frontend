@@ -1,5 +1,6 @@
 import {
     forwardRef,
+    useId,
     type InputHTMLAttributes,
 } from 'react';
 
@@ -23,7 +24,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         },
         ref
     ) => {
-        const inputId = id ?? name;
+        const generatedId = useId();
+        // Falls back to a generated id so the label always renders, even if
+        // a caller forgets to pass an id/name (previously the label was
+        // silently dropped and the field showed as a blank box)
+        const inputId = id ?? name ?? generatedId;
         const errorId = error && inputId ? `${inputId}-error` : undefined;
         const helperId =
             helperText && inputId ? `${inputId}-helper` : undefined;
