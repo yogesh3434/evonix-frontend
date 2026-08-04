@@ -13,6 +13,13 @@ export interface AuthContextValue {
     isLoading: boolean;
     isSigningOut: boolean;
     signInWithGoogle: () => Promise<void>;
+    signUpWithEmail: (
+        email: string,
+        password: string,
+        firstName?: string,
+        lastName?: string
+    ) => Promise<{ requiresEmailConfirmation: boolean }>;
+    signInWithEmail: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     refreshCurrentUser: () => Promise<void>;
 }
