@@ -13,6 +13,7 @@ import VehiclesPage from './pages/VehiclesPage';
 import SupportPage from './pages/SupportPage';
 import ChatbotWidget from './components/chatbot/ChatbotWidget';
 import CheckoutPage from './pages/CheckoutPage';
+import ChargerEstimatorPage from './pages/ChargerEstimatorPage';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/charger-estimator" element={<ChargerEstimatorPage />}/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="*" element={<NotFoundPage />} />

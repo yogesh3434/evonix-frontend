@@ -77,6 +77,10 @@ export default function Header() {
             </li>
 
             <li>
+              <NavLink to="/charger-estimator" className={({isActive}) => `text-sm font-medium transition-colors hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-slate-300'}`}>Charger Estimator</NavLink>
+            </li>
+
+            <li>
               <NavLink
                 to="/cart"
                 className={({ isActive }) =>
