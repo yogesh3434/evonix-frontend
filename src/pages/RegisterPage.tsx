@@ -34,7 +34,7 @@ const profileSchema = z
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function RegisterPage() {
-    const { session, isLoading } = useAuth();
+    const { session, isLoading, refreshCurrentUser } = useAuth();
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,6 +97,9 @@ export default function RegisterPage() {
             await apiClient.patch('/auth/profile', payload, {
                 headers: { Authorization: `Bearer ${session.access_token}` },
             });
+            // refresh so other pages (e.g. the "Complete your profile"
+            // prompt on the sign-in page) immediately see the update
+            await refreshCurrentUser();
             setStatusMessage('Profile saved successfully.');
         } catch (err) {
             const message =
@@ -155,20 +158,50 @@ export default function RegisterPage() {
 
                 <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-8">
                     <div className="flex flex-col gap-6">
-                        <Input label="Phone" {...register('phone')} />
+                        <Input
+                            label="Phone"
+                            placeholder="Enter phone number"
+                            autoComplete="tel"
+                            {...register('phone')}
+                        />
                     </div>
 
                     <div className="flex flex-col gap-6">
                         <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-2">Default Address</h2>
 
-                        <Input label="Street" {...register('street')} />
+                        <Input
+                            label="Street"
+                            placeholder="Enter street address"
+                            autoComplete="street-address"
+                            {...register('street')}
+                        />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <Input label="City" {...register('city')} />
-                            <Input label="Province" {...register('province')} />
+                            <Input
+                                label="City"
+                                placeholder="Enter city"
+                                autoComplete="address-level2"
+                                {...register('city')}
+                            />
+                            <Input
+                                label="Province"
+                                placeholder="Enter province"
+                                autoComplete="address-level1"
+                                {...register('province')}
+                            />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <Input label="Postal Code" {...register('postalCode')} />
-                            <Input label="Country" {...register('country')} />
+                            <Input
+                                label="Postal Code"
+                                placeholder="Enter postal code"
+                                autoComplete="postal-code"
+                                {...register('postalCode')}
+                            />
+                            <Input
+                                label="Country"
+                                placeholder="Enter country"
+                                autoComplete="country-name"
+                                {...register('country')}
+                            />
                         </div>
                     </div>
 
