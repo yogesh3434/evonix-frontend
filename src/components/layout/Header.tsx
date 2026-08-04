@@ -1,16 +1,20 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../../context/useAuth';
 
 export default function Header() {
   const { session, currentUser, isSigningOut, signOut } = useAuth();
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
+    setError(null);
+
     try {
       await signOut();
-      navigate('/login');
     } catch (err) {
-      console.error('Sign out failed:', err);
+      setError(
+        err instanceof Error ? err.message : 'Something went wrong signing out.'
+      );
     }
   };
 
@@ -98,46 +102,50 @@ export default function Header() {
                 </NavLink>
             </li>
 
-            {session ? (
-              <>
-                <li className="hidden text-sm font-medium text-slate-300 md:block">
-                  {currentUser?.email ?? session.user.email}
-                </li>
-                <li>
+            <li>
+              {session ? (
+                <div className="flex items-center gap-3">
+                  <span className="hidden text-xs text-slate-400 lg:inline">
+                    {currentUser?.email ?? session.user.email}
+                  </span>
                   <button
                     type="button"
                     onClick={handleSignOut}
                     disabled={isSigningOut}
-                    className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="text-sm font-medium text-slate-300 transition-colors hover:text-blue-400 disabled:opacity-50"
                   >
                     {isSigningOut ? 'Signing out...' : 'Sign Out'}
                   </button>
-                </li>
-              </>
-            ) : (
-              <>
-                <li>
-                  <NavLink
-                    to="/login"
-                    className={({ isActive }) =>
-                      `text-sm font-medium transition-colors hover:text-blue-400 ${
-                        isActive ? 'text-blue-400' : 'text-slate-300'
-                      }`
-                    }
-                  >
-                    Login
-                  </NavLink>
-                </li>
+                </div>
+              ) : (
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `text-sm font-medium transition-colors hover:text-blue-400 ${
+                      isActive ? 'text-blue-400' : 'text-slate-300'
+                    }`
+                  }
+                >
+                  Login
+                </NavLink>
+              )}
+            </li>
 
-                <li>
-                  <NavLink
-                    to="/register"
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  >
-                    Register
-                  </NavLink>
-                </li>
-              </>
+            {session && (
+              <li>
+                <NavLink
+                  to="/register"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                  Complete Profile
+                </NavLink>
+              </li>
+            )}
+
+            {error && (
+              <li className="text-xs text-red-400" role="alert">
+                {error}
+              </li>
             )}
           </ul>
         </nav>
