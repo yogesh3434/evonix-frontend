@@ -29,6 +29,15 @@ export default function LoginPage() {
     const [lastName, setLastName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // a profile counts as "complete" once the user has provided a phone
+    // number or a saved address (same rule RegisterPage uses to validate
+    // the form)
+    // once true, the "Complete your profile" prompt hides itself
+    const profile = currentUser?.profile;
+    const isProfileComplete = Boolean(
+        profile && (profile.phone || profile.hasAddress)
+    );
+
     const handleGoogleSignIn = async () => {
         setError(null);
 
@@ -129,12 +138,20 @@ export default function LoginPage() {
                             {emailMode === 'signup' && (
                                 <div className="flex gap-3">
                                     <Input
+                                        id="firstName"
+                                        name="firstName"
                                         label="First Name"
+                                        placeholder="Enter first name"
+                                        autoComplete="given-name"
                                         value={firstName}
                                         onChange={(event) => setFirstName(event.target.value)}
                                     />
                                     <Input
+                                        id="lastName"
+                                        name="lastName"
                                         label="Last Name"
+                                        placeholder="Enter last name"
+                                        autoComplete="family-name"
                                         value={lastName}
                                         onChange={(event) => setLastName(event.target.value)}
                                     />
@@ -142,16 +159,24 @@ export default function LoginPage() {
                             )}
 
                             <Input
+                                id="email"
+                                name="email"
                                 label="Email"
                                 type="email"
+                                placeholder="Enter email"
+                                autoComplete="email"
                                 required
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
                             />
 
                             <Input
+                                id="password"
+                                name="password"
                                 label="Password"
                                 type="password"
+                                placeholder="Enter password"
+                                autoComplete={emailMode === 'signup' ? 'new-password' : 'current-password'}
                                 required
                                 minLength={6}
                                 value={password}
@@ -219,11 +244,13 @@ export default function LoginPage() {
                             Signed in as: <strong className="font-medium text-slate-900">{currentUser?.email ?? session.user.email}</strong>
                         </p>
 
-                        <p className="py-2">
-                            <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                                Complete your profile
-                            </Link>
-                        </p>
+                        {!isProfileComplete && (
+                            <p className="py-2">
+                                <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                                    Complete your profile
+                                </Link>
+                            </p>
+                        )}
 
                         <Button
                             onClick={handleSignOut}
