@@ -76,8 +76,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    // UC3: Sign out. Revokes the session server-side first, then clears it
-    // locally either way.
+    // UC1 (email/password variant)
+    const signUpWithEmail = async (
+        email: string,
+        password: string,
+        firstName?: string,
+        lastName?: string
+    ): Promise<{ requiresEmailConfirmation: boolean }> => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    first_name: firstName,
+                    last_name: lastName,
+                },
+            },
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        // If "Confirm email" is enabled in the Supabase project, signUp
+        // succeeds but returns no session yet, user must click the
+        // confirmation link before they can actually sign in.
+        return { requiresEmailConfirmation: !data.session };
+    };
+
+    // UC2 (email/password variant)
+    const signInWithEmail = async (
+        email: string,
+        password: string
+    ): Promise<void> => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            throw error;
+        }
+        // onAuthStateChange above picks up the resulting session automatically
+    };
+
+    // UC3: Sign out.
     const signOut = async () => {
         setIsSigningOut(true);
 
@@ -107,6 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isSigningOut,
         signInWithGoogle,
+        signUpWithEmail,
+        signInWithEmail,
         signOut,
         refreshCurrentUser,
     };
