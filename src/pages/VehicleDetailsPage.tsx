@@ -182,7 +182,7 @@ export default function VehicleDetailsPage() {
           onError={(event) => {
             event.currentTarget.src = defaultVehicleImage;
           }}
-          className="h-96 w-full object-cover"
+          className="h-96 w-full bg-slate-100 object-contain"
         />
 
         <div className="p-6">
