@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { sendChatMessage } from '../../api/chatbotApi';
+import ChatMessageContent from './ChatMessageContent';
 
 interface ChatMessage {
   id: number;
@@ -124,7 +125,11 @@ export default function ChatbotWidget() {
                       : 'rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm'
                   }`}
                 >
-                  {chatMessage.text}
+                  {chatMessage.sender === 'user' ? (
+                    chatMessage.text
+                  ) : (
+                    <ChatMessageContent text={chatMessage.text} />
+                  )}
                 </div>
               </div>
             ))}

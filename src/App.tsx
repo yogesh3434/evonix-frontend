@@ -14,6 +14,7 @@ import SupportPage from './pages/SupportPage';
 import ChatbotWidget from './components/chatbot/ChatbotWidget';
 import CheckoutPage from './pages/CheckoutPage';
 import ChargerEstimatorPage from './pages/ChargerEstimatorPage';
+import AdminReportsPage from './pages/AdminReportsPage';
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/admin/reports" element={<AdminReportsPage />} />
         </Routes>
       </main>
 
