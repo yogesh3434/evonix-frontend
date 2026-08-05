@@ -84,10 +84,6 @@ export default function Header() {
 
             <li>
               <NavLink to="/charger-estimator" className={({isActive}) => `text-sm font-medium transition-colors hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-slate-300'}`}>Charger Estimator</NavLink>
-
-              {isAdmin && (
-                <NavLink to="/admin/reports" className={({isActive}) => `text-sm font-medium transition-colors hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-slate-300'}`}>Reports</NavLink>
-              )}
             </li>
 
             <li>
@@ -115,6 +111,21 @@ export default function Header() {
                     Support
                 </NavLink>
             </li>
+
+            {isAdmin && (
+              <li>
+                <NavLink
+                  to="/admin/reports"
+                  className={({ isActive }) =>
+                    `text-sm font-medium transition-colors hover:text-blue-400 ${
+                      isActive ? 'text-blue-400' : 'text-slate-300'
+                    }`
+                  }
+                >
+                  Reports
+                </NavLink>
+              </li>
+            )}
 
             <li>
               {session ? (
