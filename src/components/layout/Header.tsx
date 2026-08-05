@@ -40,9 +40,9 @@ export default function Header() {
 
         <nav
           aria-label="Primary navigation"
-          className="hide-scrollbar w-full overflow-x-auto md:w-auto"
+          className="w-full md:w-auto"
         >
-          <ul className="flex min-w-max items-center justify-start gap-6 px-2 pb-2 md:justify-end md:px-0 md:pb-0">
+          <ul className="flex flex-wrap items-center justify-start gap-x-5 gap-y-2 px-2 pb-2 md:justify-end md:px-0 md:pb-0">
             <li>
               <NavLink
                 to="/"
