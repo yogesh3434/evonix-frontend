@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { addToCart } from '../api/cartApi';
 import {
+  getVehicleCustomizations,
+  type VehicleCustomizations,
+} from '../api/customizationApi';
+import {
   createReview,
   getVehicleReviews,
   type Review,
@@ -29,6 +33,11 @@ export default function VehicleDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [cartMessage, setCartMessage] = useState('');
+  const [customizations, setCustomizations] =
+    useState<VehicleCustomizations | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >({});
   const [reviewMessage, setReviewMessage] = useState('');
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState('');
@@ -57,6 +66,13 @@ export default function VehicleDetailsPage() {
         setVehicle(vehicleData);
         setReviews(reviewData.data);
         setAverageRating(reviewData.averageRating);
+
+        try {
+          const customizationData = await getVehicleCustomizations(id);
+          setCustomizations(customizationData);
+        } catch {
+          setCustomizations(null);
+        }
       } catch {
         setError('Unable to load vehicle details.');
       } finally {
@@ -98,13 +114,39 @@ export default function VehicleDetailsPage() {
   const imageUrl =
     vehicleImages[vehicle.name] ?? defaultVehicleImage;
 
+  const chosenOptionIds = Object.values(selectedOptions).filter(Boolean);
+
+  const optionsTotal = (customizations?.categories ?? []).reduce(
+    (running, category) => {
+      const chosenId = selectedOptions[category.id];
+
+      if (!chosenId) {
+        return running;
+      }
+
+      const option = category.options.find(
+        (candidate) => candidate.id === chosenId
+      );
+
+      return running + (option?.priceDelta ?? 0);
+    },
+    0
+  );
+
   const handleAddToCart = async () => {
     try {
-      await addToCart(vehicle.id);
+      await addToCart(vehicle.id, 1, chosenOptionIds);
       setCartMessage('Vehicle added to cart.');
     } catch {
       setCartMessage('Unable to add vehicle to cart.');
     }
+  };
+
+  const handleOptionChange = (categoryId: string, optionId: string) => {
+    setSelectedOptions((current) => ({
+      ...current,
+      [categoryId]: optionId,
+    }));
   };
 
   const handleReviewSubmit = async (
@@ -336,6 +378,52 @@ export default function VehicleDetailsPage() {
               </p>
             )}
           </section>
+
+          {customizations && customizations.categories.length > 0 && (
+            <section className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h2 className="mb-3 text-lg font-bold text-slate-900">
+                Customize this vehicle
+              </h2>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {customizations.categories.map((category) => (
+                  <label
+                    key={category.id}
+                    className="flex flex-col gap-1.5 text-sm font-medium text-slate-700"
+                  >
+                    {category.name}
+                    <select
+                      value={selectedOptions[category.id] ?? ''}
+                      onChange={(event) =>
+                        handleOptionChange(category.id, event.target.value)
+                      }
+                      className="rounded-lg border border-slate-300 px-3 py-2 font-normal"
+                    >
+                      <option value="">None</option>
+
+                      {category.options
+                        .filter((option) => option.isAvailable)
+                        .map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.name} (+
+                            {formatCurrency(option.priceDelta)})
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+
+              <p className="mt-4 text-sm text-slate-600">
+                Configured price{' '}
+                <strong className="text-slate-900">
+                  {formatCurrency(displayPrice + optionsTotal)}
+                </strong>{' '}
+                (base {formatCurrency(displayPrice)} plus options{' '}
+                {formatCurrency(optionsTotal)})
+              </p>
+            </section>
+          )}
 
           <button
             type="button"

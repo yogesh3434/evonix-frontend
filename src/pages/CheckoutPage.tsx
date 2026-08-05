@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { getCart, removeFromCart } from '../api/cartApi';
+import { getCart } from '../api/cartApi';
+import { placeOrder, retryOrderPayment, type Order } from '../api/orderApi';
 import { formatCurrency } from '../utils/currency';
 
 interface CartItem {
@@ -28,7 +29,8 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [orderNumber, setOrderNumber] = useState('');
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [declinedOrderId, setDeclinedOrderId] = useState('');
 
   const [form, setForm] = useState({
     fullName: '',
@@ -38,7 +40,11 @@ export default function CheckoutPage() {
     city: '',
     province: 'Ontario',
     postalCode: '',
-    paymentMethod: 'Credit Card',
+    cardNumber: '',
+    cardHolderName: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: '',
   });
 
   useEffect(() => {
@@ -67,6 +73,49 @@ export default function CheckoutPage() {
     }));
   };
 
+  const buildShipping = () => ({
+    fullName: form.fullName,
+    street: form.address,
+    city: form.city,
+    province: form.province,
+    country: 'Canada',
+    postalCode: form.postalCode,
+    ...(form.phone ? { phone: form.phone } : {}),
+  });
+
+  const buildPayment = () => ({
+    cardNumber: form.cardNumber,
+    cardHolderName: form.cardHolderName,
+    expiryMonth: Number(form.expiryMonth),
+    expiryYear: Number(form.expiryYear),
+    cvv: form.cvv,
+  });
+
+  const handleOrderError = (caught: unknown) => {
+    const response = (
+      caught as {
+        response?: {
+          status?: number;
+          data?: { message?: string; details?: { orderId?: string } };
+        };
+      }
+    )?.response;
+
+    if (response?.status === 402) {
+      setDeclinedOrderId(response.data?.details?.orderId ?? '');
+      setError(
+        response.data?.message ??
+          'Payment was declined. Your order is saved, so you can try again.'
+      );
+      return;
+    }
+
+    setError(
+      response?.data?.message ??
+        'Unable to complete checkout. Please try again.'
+    );
+  };
+
   const handleCheckout = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -79,23 +128,37 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      for (const item of cart.items) {
-        await removeFromCart(item.vehicleId);
+      const order = await placeOrder(buildShipping(), buildPayment());
+
+      setPlacedOrder(order);
+      setDeclinedOrderId('');
+      setCart({ ...cart, items: [], itemCount: 0, subtotal: 0 });
+    } catch (caught) {
+      handleOrderError(caught);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRetryPayment = async () => {
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const order = await retryOrderPayment(
+        declinedOrderId,
+        form.cardNumber,
+        form.cardHolderName
+      );
+
+      setPlacedOrder(order);
+      setDeclinedOrderId('');
+
+      if (cart) {
+        setCart({ ...cart, items: [], itemCount: 0, subtotal: 0 });
       }
-
-      const confirmationNumber = `EVX-${Date.now()
-        .toString()
-        .slice(-8)}`;
-
-      setOrderNumber(confirmationNumber);
-      setCart({
-        ...cart,
-        items: [],
-        itemCount: 0,
-        subtotal: 0,
-      });
-    } catch {
-      setError('Unable to complete checkout. Please try again.');
+    } catch (caught) {
+      handleOrderError(caught);
     } finally {
       setIsSubmitting(false);
     }
@@ -109,7 +172,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (orderNumber) {
+  if (placedOrder) {
     return (
       <main className="container mx-auto flex-grow px-4 py-12">
         <section className="mx-auto max-w-2xl rounded-xl border border-green-200 bg-white p-8 text-center shadow-sm">
@@ -124,12 +187,31 @@ export default function CheckoutPage() {
           </p>
 
           <p className="mb-6 font-semibold text-green-700">
-            Order number: {orderNumber}
+            Order number: {placedOrder.id.slice(0, 8).toUpperCase()}
           </p>
 
-          <p className="mb-8 text-slate-600">
-            A confirmation will be sent to {form.email}.
-          </p>
+          <div className="mx-auto mb-8 max-w-sm space-y-1 text-left text-sm">
+            <div className="flex justify-between text-slate-600">
+              <span>Subtotal</span>
+              <span>{formatCurrency(placedOrder.subtotal)}</span>
+            </div>
+
+            <div className="flex justify-between text-slate-600">
+              <span>Tax</span>
+              <span>{formatCurrency(placedOrder.tax)}</span>
+            </div>
+
+            <div className="flex justify-between font-bold text-slate-900">
+              <span>Total</span>
+              <span>{formatCurrency(placedOrder.total)}</span>
+            </div>
+
+            {placedOrder.cardLastFour && (
+              <p className="pt-2 text-xs text-slate-500">
+                Paid with card ending {placedOrder.cardLastFour}
+              </p>
+            )}
+          </div>
 
           <Link
             to="/vehicles"
@@ -173,7 +255,18 @@ export default function CheckoutPage() {
 
       {error && (
         <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
-          {error}
+          <p>{error}</p>
+
+          {declinedOrderId && (
+            <button
+              type="button"
+              onClick={handleRetryPayment}
+              disabled={isSubmitting}
+              className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Retrying...' : 'Retry Payment'}
+            </button>
+          )}
         </div>
       )}
 
@@ -278,25 +371,79 @@ export default function CheckoutPage() {
                 />
               </label>
 
-              <label className="flex flex-col gap-2">
-                Payment Method
-                <select
-                  name="paymentMethod"
-                  value={form.paymentMethod}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-4 text-xl font-bold">
+              Payment Information
+            </h2>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-2 sm:col-span-2">
+                Card Number
+                <input
+                  type="text"
+                  name="cardNumber"
+                  value={form.cardNumber}
+                  onChange={handleChange}
+                  required
+                  placeholder="4111 1111 1111 1111"
+                  className="rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 sm:col-span-2">
+                Name on Card
+                <input
+                  type="text"
+                  name="cardHolderName"
+                  value={form.cardHolderName}
                   onChange={handleChange}
                   required
                   className="rounded-lg border border-slate-300 px-3 py-2"
-                >
-                  <option value="Credit Card">
-                    Credit Card
-                  </option>
-                  <option value="Financing">
-                    Vehicle Financing
-                  </option>
-                  <option value="Pay at Dealership">
-                    Pay at Dealership
-                  </option>
-                </select>
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                Expiry Month
+                <input
+                  type="number"
+                  name="expiryMonth"
+                  min={1}
+                  max={12}
+                  value={form.expiryMonth}
+                  onChange={handleChange}
+                  required
+                  placeholder="12"
+                  className="rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                Expiry Year
+                <input
+                  type="number"
+                  name="expiryYear"
+                  value={form.expiryYear}
+                  onChange={handleChange}
+                  required
+                  placeholder="2028"
+                  className="rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                CVV
+                <input
+                  type="text"
+                  name="cvv"
+                  value={form.cvv}
+                  onChange={handleChange}
+                  required
+                  placeholder="123"
+                  className="rounded-lg border border-slate-300 px-3 py-2"
+                />
               </label>
             </div>
           </section>

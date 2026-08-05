@@ -7,11 +7,13 @@ export async function getCart() {
 
 export async function addToCart(
   vehicleId: string,
-  quantity = 1
+  quantity = 1,
+  customizationOptionIds: string[] = []
 ) {
   const response = await apiClient.post('/cart/items', {
     vehicleId,
     quantity,
+    customizationOptionIds,
   });
 
   return response.data.data;
